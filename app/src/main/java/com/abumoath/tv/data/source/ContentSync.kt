@@ -40,7 +40,7 @@ class ContentSync @Inject constructor(
         const val ARCHIVE_QUERY = "collection:feature_films AND mediatype:movies AND (licenseurl:*publicdomain* OR licenseurl:*creativecommons*)"
         private const val DAY_MS = 24L * 3600 * 1000
         /** Bump when the content rules change: the app then refreshes everything on next start. */
-        const val DATA_VERSION = 2
+        const val DATA_VERSION = 3
 
         // iptv-org group-title -> our category ids
         val CATEGORY_MAP = mapOf(
@@ -130,7 +130,8 @@ class ContentSync @Inject constructor(
                 }
                 line.isNotEmpty() && !line.startsWith("#") && attrs != null -> {
                     val a = attrs!!
-                    val adult = a["group-title"].orEmpty().contains("xxx", ignoreCase = true)
+                    val adult = a["group-title"].orEmpty().contains("xxx", ignoreCase = true) ||
+                        ContentFilter.isAdult(name) || ContentFilter.isAdult(a["tvg-id"].orEmpty())
                     if (line.startsWith("http") && !adult) {
                         val tvgId = a["tvg-id"].orEmpty()
                         val ext = tvgId.ifBlank { "name:" + name.lowercase() }.substringBefore('@')
@@ -235,6 +236,9 @@ class ContentSync @Inject constructor(
                 val runtime = parseRuntime(o["runtime"].str())
                 if (runtime != null && runtime < 10) continue        // skip clips / trailers
                 val title = o["title"].str()?.trim().orEmpty().ifBlank { ext }
+                // Family filter: skip anything with adult / sexual keywords in title, subjects or description.
+                if (ContentFilter.isAdult(title) || ContentFilter.isAdult(ext) ||
+                    o["subject"].strList().any { ContentFilter.isAdult(it) } || ContentFilter.isAdult(o["description"].str().orEmpty().take(3000))) continue
                 val id = existing[ext] ?: 0L
                 val old = if (id != 0L) dao.get(id) else null
                 val subjects = o["subject"].strList()
@@ -268,4 +272,24 @@ class ContentSync @Inject constructor(
         Regex("^(\\d+):(\\d{2})$").find(v)?.let { return it.groupValues[1].toInt() }
         return Regex("(\\d+)\\s*min", RegexOption.IGNORE_CASE).find(v)?.groupValues?.get(1)?.toIntOrNull()
     }
+}
+
+/**
+ * Family-safe filter applied to every channel and film before it enters the library
+ * (so it never appears on screens, rows or search results).
+ */
+object ContentFilter {
+    private val words = listOf(
+        "porn", "porno", "xxx", "sex", "sexy", "sexual", "sexploitation", "erotic", "erotica", "nude", "nudity", "naked",
+        "adult", "adults only", "18+", "+18", "x-rated", "x rated", "hentai", "fetish", "bdsm", "nsfw", "stripper", "striptease",
+        "playboy", "penthouse", "hustler", "brazzers", "dorcel", "redlight", "red light", "babes", "blue movie", "hot girls",
+        "softcore", "hardcore", "orgy", "lust", "seduction", "stag film", "burlesque", "nudist", "pin-up", "pinup",
+        "اباحي", "إباحي", "جنس", "سكس", "للكبار فقط", "عري", "عاري", "اغراء", "إغراء", "+١٨", "١٨+"
+    )
+    private val regex = Regex(
+        words.joinToString("|") { "(^|[^\\p{L}\\p{N}])" + Regex.escape(it) + "($|[^\\p{L}\\p{N}])" },
+        RegexOption.IGNORE_CASE
+    )
+
+    fun isAdult(text: String?): Boolean = !text.isNullOrBlank() && regex.containsMatchIn(text)
 }
