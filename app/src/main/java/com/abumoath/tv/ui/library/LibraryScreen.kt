@@ -81,8 +81,6 @@ fun LibraryScreen(nav: NavHostController, vm: LibraryViewModel = hiltViewModel()
     Column(Modifier.fillMaxSize().padding(top = 24.dp)) {
         Row(Modifier.padding(horizontal = 40.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Chip(stringResource(R.string.menu_favorites), s.tab == "favorite", { vm.setTab("favorite") })
-            Chip(stringResource(R.string.menu_watchlist), s.tab == "watchlist", { vm.setTab("watchlist") })
-            Chip(stringResource(R.string.menu_history), s.tab == "history", { vm.setTab("history") })
             Spacer(Modifier.width(30.dp))
             if (s.items.isNotEmpty()) Chip(stringResource(R.string.delete), editMode, { editMode = !editMode })
             if (s.tab == "history" && s.items.isNotEmpty()) Chip(stringResource(R.string.clear_all), s.confirmClear, { vm.askClear(true) })

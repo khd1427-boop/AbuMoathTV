@@ -118,7 +118,10 @@ fun PlayerScreen(nav: NavHostController, vm: PlayerViewModel = hiltViewModel()) 
                         Key.DirectionRight -> { if (!ui.isLive) player.seekForward(); return@onPreviewKeyEvent true }
                         Key.DirectionLeft -> { if (!ui.isLive) player.seekBack(); return@onPreviewKeyEvent true }
                         Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> { if (player.isPlaying) player.pause() else player.play(); poke(); return@onPreviewKeyEvent true }
-                        Key.DirectionUp, Key.DirectionDown -> { poke(); return@onPreviewKeyEvent true }
+                        Key.DirectionUp -> { if (ui.isLive) vm.zap(-1); poke(); return@onPreviewKeyEvent true }
+                        Key.DirectionDown -> { if (ui.isLive) vm.zap(1); poke(); return@onPreviewKeyEvent true }
+                        Key.ChannelUp -> { vm.zap(-1); poke(); return@onPreviewKeyEvent true }
+                        Key.ChannelDown -> { vm.zap(1); poke(); return@onPreviewKeyEvent true }
                     }
                 }
                 false
@@ -182,6 +185,7 @@ fun PlayerScreen(nav: NavHostController, vm: PlayerViewModel = hiltViewModel()) 
                 Column(Modifier.fillMaxWidth().background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.85f), Color.Transparent))).padding(horizontal = 48.dp, vertical = 28.dp)) {
                     Text(ui.title, style = MaterialTheme.typography.headlineMedium, color = Color.White)
                     ui.subtitle?.let { Text(it, color = Brand.GoldLight, style = MaterialTheme.typography.titleSmall) }
+                    ui.channelNumber?.let { Text(stringResource(R.string.zap_hint, it), color = Brand.Muted, style = MaterialTheme.typography.bodySmall) }
                 }
                 // Bottom: progress + buttons
                 Column(
@@ -206,6 +210,11 @@ fun PlayerScreen(nav: NavHostController, vm: PlayerViewModel = hiltViewModel()) 
                         if (ui.texts.isNotEmpty()) {
                             CtrlButton(R.drawable.ic_subtitles, stringResource(R.string.player_subtitles), label = true) { panel = Panel.TEXT }
                             CtrlButton(R.drawable.ic_sync, stringResource(R.string.player_sub_sync), label = true) { panel = Panel.SYNC }
+                        }
+                        if (ui.isLive) {
+                            CtrlButton(R.drawable.ic_replay10, stringResource(R.string.prev_channel), label = true) { vm.zap(-1); poke() }
+                            CtrlButton(R.drawable.ic_forward10, stringResource(R.string.next_channel), label = true) { vm.zap(1); poke() }
+                            CtrlButton(R.drawable.ic_anime, stringResource(if (ui.isFavorite) R.string.remove_favorite else R.string.add_favorite), label = true) { vm.toggleFavorite(); poke() }
                         }
                         if (!ui.isLive && ui.titleId != null) CtrlButton(R.drawable.ic_series, stringResource(R.string.player_back_details), label = true) {
                             val tid = ui.titleId!!

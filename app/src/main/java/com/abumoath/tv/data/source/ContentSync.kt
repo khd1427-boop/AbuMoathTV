@@ -40,7 +40,7 @@ class ContentSync @Inject constructor(
         const val ARCHIVE_QUERY = "collection:feature_films AND mediatype:movies AND (licenseurl:*publicdomain* OR licenseurl:*creativecommons*)"
         private const val DAY_MS = 24L * 3600 * 1000
         /** Bump when the content rules change: the app then refreshes everything on next start. */
-        const val DATA_VERSION = 3
+        const val DATA_VERSION = 4
 
         // iptv-org group-title -> our category ids
         val CATEGORY_MAP = mapOf(
@@ -91,9 +91,9 @@ class ContentSync @Inject constructor(
             var errors = 0
             _status.value = Status.Running(1)
             val ch = runCatching { syncChannels() }.getOrElse { errors++; -1 }
-            _status.value = Status.Running(2)
-            val mv = runCatching { syncMovies() }.getOrElse { errors++; -1 }
-            val result = if (errors == 2) Status.Failed("network") else {
+            // Live-channels-only app: the film library is no longer used and is cleared.
+            val mv = runCatching { clearMovies(); 0 }.getOrDefault(0)
+            val result = if (ch < 0) Status.Failed("network") else {
                 prefs.edit().putLong("last", System.currentTimeMillis()).putBoolean("has_content", true).putInt("ver", DATA_VERSION).apply()
                 Status.Done(maxOf(ch, 0), maxOf(mv, 0))
             }
@@ -192,6 +192,13 @@ class ContentSync @Inject constructor(
         is JsonArray -> mapNotNull { it.str() }
         is JsonPrimitive -> contentOrNull?.split(';', ',')?.map { it.trim() } ?: emptyList()
         else -> emptyList()
+    }
+
+    private suspend fun clearMovies() {
+        val w = db.openHelper.writableDatabase
+        w.execSQL("DELETE FROM titles")
+        w.execSQL("DELETE FROM progress")
+        w.execSQL("DELETE FROM library WHERE itemType = 'title'")
     }
 
     /** Open-license queries for RECENT films only (year 2000 and later). */

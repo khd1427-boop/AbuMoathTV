@@ -52,7 +52,7 @@ data class HomeRow(
     val browse: Map<String, String>? = null
 )
 
-data class HomeResponse(val hero: List<TitleCard> = emptyList(), val rows: List<HomeRow> = emptyList())
+data class HomeResponse(val hero: List<TitleCard> = emptyList(), val rows: List<HomeRow> = emptyList(), val heroChannels: List<ChannelCard> = emptyList())
 
 data class PageResponse<T>(val page: Int = 1, val size: Int = 30, val total: Int = 0, val items: List<T> = emptyList())
 

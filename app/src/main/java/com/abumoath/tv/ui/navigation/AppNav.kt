@@ -60,20 +60,19 @@ object Routes {
     fun library(tab: String) = "library/$tab"
 }
 
-enum class MenuItem(val route: () -> String, val label: Int, val icon: Int) {
+enum class MenuItem(val route: () -> String, val label: Int, val icon: Int, val category: String? = null) {
     Search({ Routes.SEARCH }, R.string.menu_search, R.drawable.ic_mic),
     Home({ Routes.HOME }, R.string.menu_home, R.drawable.ic_home),
-    Live({ Routes.live() }, R.string.menu_live, R.drawable.ic_live_tv),
-    ArabMovies({ Routes.portal("arab_movies") }, R.string.menu_arab_movies, R.drawable.ic_movie),
-    ForeignMovies({ Routes.portal("foreign_movies") }, R.string.menu_foreign_movies, R.drawable.ic_movie),
-    KoreanMovies({ Routes.portal("korean_movies") }, R.string.menu_korean_movies, R.drawable.ic_movie),
-    AnimeMovies({ Routes.portal("anime_movies") }, R.string.menu_anime_movies, R.drawable.ic_anime),
-    ArabSeries({ Routes.portal("arab_series") }, R.string.menu_arab_series, R.drawable.ic_series),
-    ForeignSeries({ Routes.portal("foreign_series") }, R.string.menu_foreign_series, R.drawable.ic_series),
-    AnimeSeries({ Routes.portal("anime_series") }, R.string.menu_anime_series, R.drawable.ic_anime),
-    New({ Routes.browse("new") }, R.string.menu_new, R.drawable.ic_new),
-    Favorites({ Routes.library("favorite") }, R.string.menu_favorites, R.drawable.ic_free),
-    History({ Routes.library("history") }, R.string.menu_history, R.drawable.ic_history),
+    All({ Routes.live() }, R.string.menu_all_channels, R.drawable.ic_live_tv),
+    News({ Routes.live("news") }, R.string.cat_news, R.drawable.ic_new, "news"),
+    Sports({ Routes.live("sports") }, R.string.cat_sports, R.drawable.ic_hd, "sports"),
+    Religious({ Routes.live("religious") }, R.string.cat_religious, R.drawable.ic_anime, "religious"),
+    Kids({ Routes.live("kids") }, R.string.cat_kids, R.drawable.ic_free, "kids"),
+    Documentary({ Routes.live("documentary") }, R.string.cat_documentary, R.drawable.ic_globe, "documentary"),
+    MoviesCh({ Routes.live("movies") }, R.string.cat_movies, R.drawable.ic_movie, "movies"),
+    SeriesCh({ Routes.live("series") }, R.string.cat_series, R.drawable.ic_series, "series"),
+    Music({ Routes.live("music") }, R.string.cat_music, R.drawable.ic_audio, "music"),
+    Favorites({ Routes.library("favorite") }, R.string.menu_favorites, R.drawable.ic_category),
     Settings({ Routes.SETTINGS }, R.string.menu_settings, R.drawable.ic_sync)
 }
 
@@ -149,12 +148,13 @@ fun AppNavHost() {
         ) { entry ->
             val mode = entry.arguments?.getString("mode") ?: "movies"
             val sel = when (mode) {
-                "new" -> MenuItem.New; else -> null
+                else -> null
             }
             MainFrame(nav, sel) { BrowseScreen(nav) }
         }
         composable(Routes.LIVE, arguments = listOf(navArgument("category") { type = NavType.StringType; defaultValue = "" }, navArgument("country") { type = NavType.StringType; defaultValue = "" })) {
-            MainFrame(nav, MenuItem.Live) { LiveTvScreen(nav) }
+            val cat = it.arguments?.getString("category").orEmpty()
+            MainFrame(nav, MenuItem.entries.firstOrNull { m -> m.category == cat && cat.isNotEmpty() } ?: MenuItem.All) { LiveTvScreen(nav) }
         }
         composable(Routes.DETAILS, arguments = listOf(navArgument("id") { type = NavType.LongType })) {
             DetailsScreen(nav)
@@ -169,13 +169,12 @@ fun AppNavHost() {
         ) { PlayerScreen(nav) }
         composable(Routes.PORTAL, arguments = listOf(navArgument("mode") { type = NavType.StringType })) { entry ->
             val mode = entry.arguments?.getString("mode") ?: "arab_series"
-            val sel = MenuItem.entries.firstOrNull { it.route() == Routes.portal(mode) }
-            MainFrame(nav, sel) { PortalScreen(nav) }
+            MainFrame(nav, null) { PortalScreen(nav) }
         }
         composable(Routes.SEARCH) { MainFrame(nav, MenuItem.Search) { SearchScreen(nav) } }
         composable(Routes.LIBRARY, arguments = listOf(navArgument("tab") { type = NavType.StringType })) { entry ->
             val tab = entry.arguments?.getString("tab") ?: "favorite"
-            MainFrame(nav, if (tab == "history") MenuItem.History else MenuItem.Favorites) { LibraryScreen(nav) }
+            MainFrame(nav, MenuItem.Favorites) { LibraryScreen(nav) }
         }
         composable(Routes.SETTINGS) {
             MainFrame(nav, MenuItem.Settings) {

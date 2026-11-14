@@ -106,21 +106,6 @@ fun SettingsScreen(nav: NavHostController, vm: SettingsViewModel = hiltViewModel
         section(R.string.settings_quality)
         choices(listOf("auto" to R.string.q_auto, "FHD" to R.string.q_fhd, "HD" to R.string.q_hd, "SD" to R.string.q_sd), p.defaultQuality) { v -> vm.set { it.copy(defaultQuality = v) } }
 
-        section(R.string.settings_subtitle_lang)
-        choices(listOf("ara" to R.string.sub_arabic, "eng" to R.string.sub_english, "off" to R.string.sub_off), p.subtitleLang) { v -> vm.set { it.copy(subtitleLang = v) } }
-
-        section(R.string.settings_subtitle_size)
-        choices(listOf("0.8" to R.string.size_small, "1.0" to R.string.size_medium, "1.25" to R.string.size_large, "1.5" to R.string.size_xlarge), p.subtitleSize.toString()) { v -> vm.set { it.copy(subtitleSize = v.toFloat()) } }
-
-        section(R.string.settings_subtitle_color)
-        choices(listOf("${0xFFFFFFFF.toInt()}" to R.string.color_white, "${0xFFFFEB3B.toInt()}" to R.string.color_yellow, "${0xFF80DEEA.toInt()}" to R.string.color_cyan), p.subtitleColor.toString()) { v -> vm.set { it.copy(subtitleColor = v.toInt()) } }
-
-        section(R.string.settings_subtitle_bg)
-        choices(listOf("none" to R.string.bg_none, "semi" to R.string.bg_semi, "black" to R.string.bg_black), p.subtitleBackground) { v -> vm.set { it.copy(subtitleBackground = v) } }
-
-        section(R.string.settings_subtitle_position)
-        choices(listOf("0.08" to R.string.pos_bottom, "0.15" to R.string.pos_raised, "0.25" to R.string.pos_high), p.subtitlePosition.toString()) { v -> vm.set { it.copy(subtitlePosition = v.toFloat()) } }
-
         section(R.string.settings_speed_test)
         item { OptionRow(speed ?: stringResource(R.string.settings_speed_test), false, { vm.runSpeedTest(ctx) }) }
 

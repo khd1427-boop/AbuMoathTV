@@ -89,15 +89,19 @@ fun HomeScreen(nav: NavHostController, vm: HomeViewModel = hiltViewModel()) {
 private fun HomeContent(data: HomeResponse, nav: NavHostController) {
     val heroFocus = remember { FocusRequester() }
     LaunchedEffect(Unit) { runCatching { heroFocus.requestFocus() } }
-    if (data.hero.isEmpty() && data.rows.isEmpty()) { EmptyView(); return }
+    if (data.hero.isEmpty() && data.rows.isEmpty() && data.heroChannels.isEmpty()) { EmptyView(); return }
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 40.dp)) {
-        if (data.hero.isNotEmpty()) item(key = "hero") { HeroBanner(data.hero, nav, heroFocus) }
+        if (data.heroChannels.isNotEmpty()) item(key = "chero") { ChannelHero(data.heroChannels, nav, heroFocus) }
+        else if (data.hero.isNotEmpty()) item(key = "hero") { HeroBanner(data.hero, nav, heroFocus) }
         items(data.rows, key = { it.id }) { row ->
             when (row.kind) {
                 "channels" -> {
                     ContentRow(row.title, row.channels, key = { it.id },
-                        onSeeAll = { nav.navigate(Routes.live(row.browse?.get("category"))) }) { ch ->
+                        onSeeAll = {
+                            val b = row.browse
+                            nav.navigate(if (b?.get("country") != null) Routes.liveCountry(b.getValue("country")) else Routes.live(b?.get("category")))
+                        }) { ch ->
                         ChannelTile(ch, onClick = { nav.navigate(Routes.player("channel", ch.id)) })
                     }
                 }
@@ -155,3 +159,55 @@ private fun HeroBanner(items: List<TitleCard>, nav: NavHostController, focus: Fo
     }
 }
 
+/** Big live banner for the main news channels: logo, LIVE badge, country; rotates while not focused. */
+@Composable
+private fun ChannelHero(items: List<com.abumoath.tv.data.model.ChannelCard>, nav: NavHostController, focus: FocusRequester) {
+    var index by remember { mutableIntStateOf(0) }
+    var hasFocus by remember { mutableStateOf(false) }
+    LaunchedEffect(hasFocus, items.size) {
+        while (!hasFocus && items.size > 1) { delay(7000); index = (index + 1) % items.size }
+    }
+    val c = items[index.coerceIn(0, items.lastIndex)]
+    Box(
+        Modifier.fillMaxWidth().height(330.dp)
+            .background(androidx.compose.ui.graphics.Brush.linearGradient(listOf(androidx.compose.ui.graphics.Color(0xFF1B2547), Brand.Black, androidx.compose.ui.graphics.Color(0xFF2A1F05))))
+    ) {
+        Row(Modifier.fillMaxSize().padding(horizontal = 48.dp, vertical = 30.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.size(340.dp, 200.dp)
+                    .background(androidx.compose.ui.graphics.Color(0x22FFFFFF), androidx.compose.foundation.shape.RoundedCornerShape(18.dp))
+                    .padding(26.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (c.logoUrl != null) AsyncImage(model = c.logoUrl, contentDescription = c.name, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
+                else Text(c.name, style = MaterialTheme.typography.headlineMedium)
+            }
+            Spacer(Modifier.width(40.dp))
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.background(Brand.Live, androidx.compose.foundation.shape.RoundedCornerShape(6.dp)).padding(horizontal = 10.dp, vertical = 3.dp)) {
+                        Text("● " + stringResource(R.string.live_badge), color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.labelLarge)
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Text(com.abumoath.tv.data.repo.flagOf(c.country) + "  " + (c.country?.let { com.abumoath.tv.data.source.TextTools.countryName(it, java.util.Locale.getDefault().language) } ?: ""), color = Brand.Muted)
+                }
+                Spacer(Modifier.height(12.dp))
+                Text(c.name, style = MaterialTheme.typography.displaySmall, color = Brand.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Spacer(Modifier.height(20.dp))
+                Row(Modifier.onFocusChanged { hasFocus = it.hasFocus }) {
+                    GoldButton(stringResource(R.string.watch_now), { nav.navigate(Routes.player("channel", c.id)) },
+                        Modifier.focusRequester(focus), icon = R.drawable.ic_play)
+                    Spacer(Modifier.width(14.dp))
+                    GoldButton(stringResource(R.string.menu_live), { nav.navigate(Routes.live()) }, icon = R.drawable.ic_live_tv)
+                }
+                // Dots
+                Row(Modifier.padding(top = 18.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items.indices.forEach { i ->
+                        Box(Modifier.size(if (i == index) 22.dp else 8.dp, 8.dp)
+                            .background(if (i == index) Brand.Gold else Brand.Line, androidx.compose.foundation.shape.RoundedCornerShape(4.dp)))
+                    }
+                }
+            }
+        }
+    }
+}

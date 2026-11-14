@@ -52,7 +52,9 @@ data class PlayerUi(
     val subOffsetMs: Long = 0,
     val info: Int? = null,          // transient message (reconnecting / switching source)
     val error: Int? = null,         // fatal message
-    val nextCountdown: Int? = null
+    val nextCountdown: Int? = null,
+    val isFavorite: Boolean = false,
+    val channelNumber: String? = null
 )
 
 @HiltViewModel
@@ -83,6 +85,7 @@ class PlayerViewModel @Inject constructor(
     private var activeSubtitles: List<SubtitleDto> = emptyList()
         get() = if (field.isEmpty()) subtitles else field
     private var streamIndex = 0
+    private var zapList: List<Long> = emptyList()
     private var networkRetries = 0
     private var progressJob: Job? = null
     private var countdownJob: Job? = null
@@ -130,7 +133,12 @@ class PlayerViewModel @Inject constructor(
                     "channel" -> {
                         val c = catalog.channel(itemId)
                         streams = c.streams; subtitles = emptyList(); resumeMs = 0
-                        _ui.update { it.copy(title = c.name, isLive = true, subtitle = context.getString(R.string.live_now)) }
+                        if (zapList.isEmpty()) zapList = runCatching { catalog.channelNeighbors(itemId) }.getOrDefault(emptyList())
+                        val pos = zapList.indexOf(itemId)
+                        val fav = runCatching { library.isIn("favorite", "channel", itemId) }.getOrDefault(false)
+                        _ui.update { it.copy(title = c.name, isLive = true, isFavorite = fav,
+                            subtitle = com.abumoath.tv.data.repo.flagOf(c.country) + "  " + context.getString(R.string.live_now),
+                            channelNumber = if (pos >= 0) "${pos + 1} / ${zapList.size}" else null) }
                     }
                     else -> {
                         kind = "title"
@@ -302,6 +310,21 @@ class PlayerViewModel @Inject constructor(
             for (i in 5 downTo 1) { _ui.update { it.copy(nextCountdown = i) }; delay(1000) }
             playNext()
         }
+    }
+
+    /** Channel up/down (live TV): next / previous channel of the same country. */
+    fun zap(delta: Int) {
+        if (kind != "channel" || zapList.size < 2) return
+        val i = zapList.indexOf(itemId).coerceAtLeast(0)
+        itemId = zapList[((i + delta) % zapList.size + zapList.size) % zapList.size]
+        load()
+    }
+
+    fun toggleFavorite() {
+        if (kind != "channel") return
+        val now = !_ui.value.isFavorite
+        _ui.update { it.copy(isFavorite = now) }
+        viewModelScope.launch { runCatching { library.setInList("favorite", "channel", itemId, now) } }
     }
 
     fun cancelCountdown() { countdownJob?.cancel(); _ui.update { it.copy(nextCountdown = null) } }

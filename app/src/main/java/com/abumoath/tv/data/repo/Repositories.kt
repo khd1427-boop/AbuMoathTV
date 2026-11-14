@@ -7,6 +7,7 @@ import com.abumoath.tv.data.source.ArchiveResolver
 import com.abumoath.tv.data.source.TextTools
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -32,6 +33,12 @@ val GENRE_NAMES = mapOf(
     "family" to ("عائلية" to "Family"), "animation" to ("رسوم متحركة" to "Animation"), "crime" to ("جريمة" to "Crime"), "war" to ("حرب" to "War"),
     "sport" to ("رياضية" to "Sport"), "mystery" to ("غموض" to "Mystery"), "western" to ("غرب أمريكي" to "Western"), "music" to ("موسيقى" to "Music")
 )
+
+/** Country flag emoji from an ISO code ("SA" -> 🇸🇦). */
+fun flagOf(code: String?): String {
+    if (code == null || code.length != 2) return "🌍"
+    return code.uppercase().map { String(Character.toChars(0x1F1E6 + (it - 'A'))) }.joinToString("")
+}
 
 private fun qLabel(h: Int) = when { h >= 1000 -> "FHD"; h >= 700 -> "HD"; h > 0 -> "SD"; else -> null }
 
@@ -162,42 +169,59 @@ class CatalogRepository @Inject constructor(
         if (ok) db.channels().markOk(streamId) else db.channels().markFailed(streamId)
     }
 
-    // ---------------- Home ----------------
+    // ---------------- Home (live channels only) ----------------
+    /** Countries shown as their own rows on the home screen (in this order, when they have channels). */
+    private val HOME_COUNTRIES = listOf("SA", "AE", "KW", "QA", "BH", "OM", "EG", "IQ", "JO", "LB", "SY", "PS", "MA", "DZ", "TN", "LY", "YE", "SD", "TR")
+
     suspend fun home(): HomeResponse {
         val rows = mutableListOf<HomeRow>()
-        fun T(id: String, a: String, e: String, items: List<TitleCard>, browse: Map<String, String>?) {
-            if (items.isNotEmpty() && rows.none { it.id == id }) rows += HomeRow(id, if (ar) a else e, "titles", titles = items, browse = browse)
+        val used = HashSet<Long>()
+        fun C(id: String, a: String, e: String, items: List<ChannelEntity>, browse: Map<String, String>?, unique: Boolean = false) {
+            val list = if (unique) items.filter { used.add(it.id) } else items
+            if (list.isNotEmpty() && rows.none { it.id == id }) rows += HomeRow(id, if (ar) a else e, "channels", channels = list.map { it.card() }, browse = browse)
         }
-        fun C(id: String, a: String, e: String, items: List<ChannelEntity>, browse: Map<String, String>?) {
-            if (items.isNotEmpty()) rows += HomeRow(id, if (ar) a else e, "channels", channels = items.map { it.card() }, browse = browse)
-        }
-        val cont = continueWatching()
-        if (cont.isNotEmpty()) rows += HomeRow("continue", if (ar) "متابعة المشاهدة" else "Continue watching", "continue", titles = cont)
         val chDao = db.channels()
+
+        // Hero: the main Arabic news channels (Al Jazeera first).
         val newsIds = chDao.searchIndex().mapNotNull { r -> com.abumoath.tv.data.source.ChannelAliases.newsRank(r.name)?.let { r.id to it } }
             .sortedBy { it.second }.map { it.first }.take(20)
         val newsMap = chDao.getMany(newsIds).associateBy { it.id }
-        C("news_ar", "القنوات الإخبارية العربية", "Arabic news channels", newsIds.mapNotNull { newsMap[it] }, mapOf("category" to "news"))
-        C("arab_ch", "قنوات عربية", "Arabic channels", chDao.inCountries(ARAB_COUNTRIES, null, 20), mapOf("region" to "arab"))
-        C("series_ch", "قنوات المسلسلات (بث مباشر)", "Series channels (live)", chDao.list(null, "series", 20, 0), mapOf("category" to "series"))
-        C("sports", "القنوات الرياضية المجانية", "Free sports channels", chDao.list(null, "sports", 20, 0), mapOf("category" to "sports"))
-        T("latest_movies", "أحدث الأفلام", "Latest movies", titles(mapOf("sort" to "new"), 1).items.take(20), mapOf("sort" to "new"))
-        val year = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
-        T("recent5", "أفلام آخر 5 سنوات", "Last 5 years", allTitles().filter { (it.year ?: 0) >= year - 5 }
-            .sortedByDescending { it.popularity }.take(20).map { it.card() }, mapOf("decade" to "${(year - 5) / 10 * 10}"))
-        T("top", "الأكثر مشاهدة", "Most watched", titles(mapOf("sort" to "top"), 1).items.take(20), mapOf("sort" to "top"))
-        C("news", "قنوات إخبارية", "News channels", chDao.list(null, "news", 20, 0), mapOf("category" to "news"))
-        C("kids", "قنوات الأطفال", "Kids channels", chDao.list(null, "kids", 20, 0), mapOf("category" to "kids"))
-        C("religious", "قنوات دينية", "Religious channels", chDao.inCountries(ARAB_COUNTRIES, "religious", 20), mapOf("category" to "religious"))
-        T("arab", "المحتوى العربي", "Arabic", titles(mapOf("region" to "arab"), 1).items.take(20), mapOf("region" to "arab"))
-        for ((g, names) in listOf("comedy" to ("كوميديا" to "Comedy"), "crime" to ("جريمة وغموض" to "Crime & noir"), "horror" to ("رعب" to "Horror"),
-                "western" to ("غرب أمريكي" to "Westerns"), "scifi" to ("خيال علمي" to "Sci-Fi"), "animation" to ("رسوم متحركة" to "Animation"), "documentary" to ("وثائقية" to "Documentary"))) {
-            T("g_$g", "أفلام " + names.first, names.second + " movies", titles(mapOf("genre" to g, "sort" to "top"), 1).items.take(20), mapOf("genre" to g))
+        val news = newsIds.mapNotNull { newsMap[it] }
+
+        // Your channels first
+        val favIds = db.library().list("favorite").filter { it.itemType == "channel" }.map { it.itemId }
+        val favMap = chDao.getMany(favIds).associateBy { it.id }
+        C("fav", "قنواتي المفضلة", "My favorites", favIds.mapNotNull { favMap[it] }, null)
+        C("recent", "الأكثر مشاهدة عندك", "Your most watched", chDao.mostWatched(20), null)
+
+        C("news_ar", "القنوات الإخبارية العربية", "Arabic news", news, mapOf("category" to "news"))
+        C("sports", "القنوات الرياضية", "Sports", chDao.list(null, "sports", 30, 0), mapOf("category" to "sports"))
+        C("religious", "قنوات القرآن الكريم والقنوات الدينية", "Quran & religious", chDao.inCountries(ARAB_COUNTRIES, "religious", 30), mapOf("category" to "religious"))
+        C("kids", "قنوات الأطفال", "Kids", chDao.list(null, "kids", 30, 0), mapOf("category" to "kids"))
+
+        // One row per Arab country (flag + name)
+        for (code in HOME_COUNTRIES) {
+            val items = chDao.list(code, null, 25, 0)
+            if (items.isEmpty()) continue
+            val flag = flagOf(code)
+            C("c_$code", "$flag  " + TextTools.countryName(code, "ar"), "$flag  " + TextTools.countryName(code, "en"), items, mapOf("country" to code))
         }
-        C("movies_ch", "قنوات الأفلام", "Movie channels", chDao.list(null, "movies", 20, 0), mapOf("category" to "movies"))
-        C("docs_ch", "قنوات وثائقية", "Documentary channels", chDao.list(null, "documentary", 20, 0), mapOf("category" to "documentary"))
-        val hero = allTitles().sortedByDescending { it.popularity }.take(40).sortedByDescending { it.year ?: 0 }.take(5).map { it.card() }
-        return HomeResponse(hero, rows)
+
+        C("docs", "قنوات وثائقية", "Documentary", chDao.list(null, "documentary", 30, 0), mapOf("category" to "documentary"))
+        C("movies_ch", "قنوات الأفلام", "Movie channels", chDao.list(null, "movies", 30, 0), mapOf("category" to "movies"))
+        C("series_ch", "قنوات المسلسلات", "Series channels", chDao.list(null, "series", 30, 0), mapOf("category" to "series"))
+        C("music", "قنوات موسيقية", "Music", chDao.list(null, "music", 30, 0), mapOf("category" to "music"))
+        C("culture", "قنوات ثقافية وتعليمية", "Culture & education", chDao.list(null, "culture", 15, 0) + chDao.list(null, "education", 15, 0), mapOf("category" to "culture"))
+        C("world_news", "أخبار عالمية", "World news", chDao.list(null, "news", 40, 0).filter { it.country !in ARAB_COUNTRIES }.take(30), mapOf("category" to "news"))
+        C("entertainment", "قنوات ترفيهية", "Entertainment", chDao.list(null, "entertainment", 30, 0), mapOf("category" to "entertainment"))
+
+        return HomeResponse(rows = rows, heroChannels = news.take(6).map { it.card() })
+    }
+
+    /** Channels around the current one (same country), used for channel up/down zapping in the player. */
+    suspend fun channelNeighbors(id: Long): List<Long> {
+        val c = db.channels().get(id) ?: return emptyList()
+        return db.channels().list(c.country, null, 400, 0).map { it.id }
     }
 
     suspend fun continueWatching(): List<TitleCard> {
@@ -283,6 +307,8 @@ class LibraryRepository @Inject constructor(private val db: LocalDb, private val
         if (durationMs <= 0) return
         db.progress().upsert(ProgressEntity(itemType, id, titleId, positionMs, durationMs, positionMs.toDouble() / durationMs > 0.93, System.currentTimeMillis()))
     }
+
+    suspend fun isIn(list: String, itemType: String, id: Long): Boolean = db.library().observeContains(list, itemType, id).first()
 
     suspend fun deleteHistory(card: TitleCard) = db.progress().deleteForTitle(card.id)
     suspend fun clearHistory() = db.progress().clear()

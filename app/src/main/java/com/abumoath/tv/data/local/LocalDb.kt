@@ -89,6 +89,7 @@ interface ChannelDao {
     @Query("UPDATE channel_streams SET failCount = failCount + 1 WHERE id = :id") suspend fun markFailed(id: Long)
     @Query("UPDATE channel_streams SET failCount = 0 WHERE id = :id") suspend fun markOk(id: Long)
     @Query("UPDATE channels SET views = views + 1 WHERE id = :id") suspend fun addView(id: Long)
+    @Query("SELECT * FROM channels WHERE views > 0 ORDER BY views DESC LIMIT :limit") suspend fun mostWatched(limit: Int): List<ChannelEntity>
     @Query("SELECT country AS k, COUNT(*) AS n FROM channels WHERE country IS NOT NULL GROUP BY country") suspend fun countryFacets(): List<FacetRow>
     @Query("SELECT categories AS k, 1 AS n FROM channels") suspend fun allCategories(): List<FacetRow>
     @Query("SELECT id, name, nameNorm, logo, country, categories, bestHeight FROM channels") suspend fun searchIndex(): List<ChannelIndexRow>

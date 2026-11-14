@@ -4,7 +4,7 @@
     <string name="app_name">أبو معاذ TV</string>
     <string name="brand_ar">أبو معاذ</string>
     <string name="brand_en">ABU MOATH TV</string>
-    <string name="tagline">سينما العالم بين يديك</string>
+    <string name="tagline">قنوات العالم المباشرة بين يديك</string>
 
     <!-- Menu -->
     <string name="menu_home">الرئيسية</string>
@@ -206,7 +206,7 @@
     <string name="update_failed">فشل التحديث: %1$s</string>
     <string name="update_verify_failed">فشل التحقق من سلامة الملف</string>
     <string name="update_allow_unknown">اسمح لتطبيق أبو معاذ بتثبيت التطبيقات من الإعدادات ثم أعد المحاولة</string>
-    <string name="about_text">أبو معاذ TV للاستخدام الشخصي. القنوات من الفهرس العام للبث المجاني (iptv-org)، والأفلام من أرشيف الإنترنت (ملكية عامة وCreative Commons). لا يُنزَّل أي فيلم على الجهاز؛ المشاهدة بالبث المباشر فقط.</string>
+    <string name="about_text">أبو معاذ TV للاستخدام الشخصي: قنوات تلفزيونية مباشرة ومجانية من الفهرس العام للبث المجاني (iptv-org). بعض القنوات قد تتوقف مؤقتاً أو تكون محجوبة في بلدك. لا يُخزَّن أي محتوى على الجهاز.</string>
     <string name="tmdb_attribution">This product uses the TMDB API but is not endorsed or certified by TMDB.</string>
 
     <!-- Errors -->
@@ -222,15 +222,15 @@
     <string name="error_registration_disabled">التسجيل مغلق حالياً، تواصل مع المدير</string>
     <string name="error_not_found">المحتوى غير موجود أو تمت إزالته</string>
     <string name="error_unknown">حدث خطأ غير متوقع</string>
-    <string name="first_sync">جارٍ تجهيز مكتبة القنوات والأفلام لأول مرة…</string>
-    <string name="sync_channels">تحميل قائمة القنوات المجانية (قد يستغرق دقيقة)</string>
+    <string name="first_sync">جارٍ تجهيز قائمة القنوات لأول مرة…</string>
+    <string name="sync_channels">تحميل القنوات المجانية (قد يستغرق دقيقة)</string>
     <string name="sync_movies">تحميل قائمة الأفلام</string>
     <string name="first_sync_failed">تعذر الاتصال بالإنترنت. تأكد من اتصال الواي فاي ثم أعد المحاولة.</string>
     <string name="settings_content">المحتوى</string>
-    <string name="last_update">آخر تحديث: %1$s (يتحدث تلقائياً كل يوم)</string>
-    <string name="update_content_now">تحديث القنوات والأفلام الآن</string>
+    <string name="last_update">آخر تحديث: %1$s (تتحدث القنوات تلقائياً كل يوم)</string>
+    <string name="update_content_now">تحديث قائمة القنوات الآن</string>
     <string name="sync_running">جارٍ التحديث…</string>
-    <string name="sync_done">تم التحديث: %1$d قناة و%2$d فيلم</string>
+    <string name="sync_done">تم التحديث: %1$d قناة</string>
     <string name="menu_anime">أنمي</string>
     <string name="portal_note_series">المسلسلات الحديثة تُعرض بشكل رسمي داخل تطبيقاتها (مثل شاهد وYouTube). من هنا تفتحها مباشرة، أو تبحث عن مسلسل، أو تشاهد قنوات المسلسلات المباشرة المجانية.</string>
     <string name="portal_note_anime">الأنمي الحديث يُعرض بشكل رسمي داخل تطبيقاته وقنوات YouTube الرسمية. من هنا تفتحها مباشرة، أو تبحث عن أنمي، أو تشاهد قنوات الكرتون وأفلام الرسوم المتحركة المجانية.</string>
@@ -258,4 +258,17 @@
     <string name="cat_live_korean">قنوات كورية مباشرة</string>
     <string name="portal_search_movie">اكتب اسم الفيلم…</string>
     <string name="portal_note">الأعمال الحديثة المرخّصة تُعرض داخل تطبيقاتها الرسمية. البحث في YouTube يضيف كلمة "مترجم عربي" تلقائياً لتظهر النسخ المترجمة.</string>
+    <string name="menu_all_channels">كل القنوات</string>
+    <string name="cat_news">إخبارية</string>
+    <string name="cat_sports">رياضية</string>
+    <string name="cat_religious">قرآن ودينية</string>
+    <string name="cat_kids">أطفال</string>
+    <string name="cat_documentary">وثائقية</string>
+    <string name="cat_movies">قنوات أفلام</string>
+    <string name="cat_series">قنوات مسلسلات</string>
+    <string name="cat_music">موسيقى</string>
+    <string name="channels_count">%1$d قناة</string>
+    <string name="zap_hint">القناة %1$s — استخدم السهم أعلى/أسفل للتنقل بين القنوات</string>
+    <string name="prev_channel">القناة السابقة</string>
+    <string name="next_channel">القناة التالية</string>
 </resources>

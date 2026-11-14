@@ -103,11 +103,16 @@ fun LiveTvScreen(nav: NavHostController, vm: LiveViewModel = hiltViewModel()) {
             contentPadding = PaddingValues(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             item { Text(stringResource(R.string.live_countries), style = MaterialTheme.typography.titleMedium, color = Brand.GoldLight, modifier = Modifier.padding(6.dp)) }
-            item { OptionRow(stringResource(R.string.all), s.country == null, { vm.select(country = null) }) }
-            items(s.facets.countries, key = { it.id }) { c -> OptionRow(c.name, s.country == c.id, { vm.select(country = c.id) }, trailing = c.count.toString()) }
+            item { OptionRow("🌍  " + stringResource(R.string.all), s.country == null, { vm.select(country = null) }) }
+            items(s.facets.countries, key = { it.id }) { c -> OptionRow(com.abumoath.tv.data.repo.flagOf(c.id) + "  " + c.name, s.country == c.id, { vm.select(country = c.id) }, trailing = c.count.toString()) }
         }
         Column(Modifier.weight(1f).fillMaxHeight().padding(top = 20.dp)) {
-            Text(stringResource(R.string.menu_live), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(horizontal = 32.dp))
+            Row(Modifier.padding(horizontal = 32.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                Text(s.country?.let { com.abumoath.tv.data.repo.flagOf(it) + "  " + (s.facets.countries.firstOrNull { f -> f.id == it }?.name ?: it) }
+                    ?: stringResource(R.string.menu_live), style = MaterialTheme.typography.headlineMedium)
+                Spacer(Modifier.width(16.dp))
+                if (s.total > 0) Text(stringResource(R.string.channels_count, s.total), color = Brand.Muted)
+            }
             LazyRow(contentPadding = PaddingValues(horizontal = 32.dp, vertical = 14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 item { Chip(stringResource(R.string.all), s.category == null, { vm.select(category = null) }) }
                 items(s.facets.categories, key = { it.id }) { c -> Chip(c.name, s.category == c.id, { vm.select(category = c.id) }) }

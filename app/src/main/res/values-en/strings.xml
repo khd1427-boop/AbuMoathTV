@@ -3,7 +3,7 @@
     <string name="app_name">ABU MOATH TV</string>
     <string name="brand_ar">أبو معاذ</string>
     <string name="brand_en">ABU MOATH TV</string>
-    <string name="tagline">World cinema at your fingertips</string>
+    <string name="tagline">World live TV at your fingertips</string>
 
     <string name="menu_home">Home</string>
     <string name="menu_movies">Movies</string>
@@ -194,7 +194,7 @@
     <string name="update_failed">Update failed: %1$s</string>
     <string name="update_verify_failed">File integrity check failed</string>
     <string name="update_allow_unknown">Allow ABU MOATH TV to install apps in system settings, then try again</string>
-    <string name="about_text">ABU MOATH TV, for personal use. Channels come from the public free-to-air index (iptv-org); movies from the Internet Archive (public domain and Creative Commons). Nothing is downloaded; everything is streamed.</string>
+    <string name="about_text">ABU MOATH TV, for personal use: free live TV channels from the public free-to-air index (iptv-org). Some channels may stop temporarily or be geo-blocked. Nothing is stored on the device.</string>
     <string name="tmdb_attribution">This product uses the TMDB API but is not endorsed or certified by TMDB.</string>
 
     <string name="error_network">Cannot reach the server. Check your internet connection.</string>
@@ -209,15 +209,15 @@
     <string name="error_registration_disabled">Registration is closed, contact the administrator</string>
     <string name="error_not_found">Content not found or removed</string>
     <string name="error_unknown">Unexpected error</string>
-    <string name="first_sync">Preparing the channel &amp; movie library for the first time…</string>
+    <string name="first_sync">Preparing the channel list for the first time…</string>
     <string name="sync_channels">Loading free channels (may take a minute)</string>
     <string name="sync_movies">Loading movies</string>
     <string name="first_sync_failed">No internet connection. Check Wi-Fi and try again.</string>
     <string name="settings_content">Content</string>
-    <string name="last_update">Last update: %1$s (updates automatically every day)</string>
-    <string name="update_content_now">Update channels &amp; movies now</string>
+    <string name="last_update">Last update: %1$s (channels update automatically every day)</string>
+    <string name="update_content_now">Update channel list now</string>
     <string name="sync_running">Updating…</string>
-    <string name="sync_done">Updated: %1$d channels and %2$d movies</string>
+    <string name="sync_done">Updated: %1$d channels</string>
     <string name="menu_anime">Anime</string>
     <string name="portal_note_series">Recent series are officially available inside their own apps (e.g. Shahid, YouTube). Open them from here, search for a series, or watch free live series channels.</string>
     <string name="portal_note_anime">Recent anime is officially available inside its apps and official YouTube channels. Open them from here, search for an anime, or watch free cartoon channels and animated films.</string>
@@ -245,4 +245,17 @@
     <string name="cat_live_korean">Korean live channels</string>
     <string name="portal_search_movie">Type a movie name…</string>
     <string name="portal_note">Recent licensed titles are available inside their official apps. YouTube search adds "Arabic subtitles" automatically.</string>
+    <string name="menu_all_channels">All channels</string>
+    <string name="cat_news">News</string>
+    <string name="cat_sports">Sports</string>
+    <string name="cat_religious">Quran &amp; religious</string>
+    <string name="cat_kids">Kids</string>
+    <string name="cat_documentary">Documentary</string>
+    <string name="cat_movies">Movie channels</string>
+    <string name="cat_series">Series channels</string>
+    <string name="cat_music">Music</string>
+    <string name="channels_count">%1$d channels</string>
+    <string name="zap_hint">Channel %1$s — use up/down to switch channels</string>
+    <string name="prev_channel">Previous</string>
+    <string name="next_channel">Next</string>
 </resources>
