@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Many free-to-air TV channels still publish their streams over plain HTTP, so cleartext is allowed
+  for media playback. The app's own API is protected in code: release builds refuse a non-HTTPS
+  server address (except private LAN addresses used for home servers) - see ServerUrlPolicy.kt.
+  User-installed CAs are NOT trusted (prevents MITM with a custom certificate).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

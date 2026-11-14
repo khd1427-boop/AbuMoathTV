@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shown instantly at cold start while the process loads (no white flash). -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/brand_black" />
+    <item android:width="220dp" android:height="220dp" android:gravity="center" android:drawable="@drawable/brand_logo" />
+</layer-list>
