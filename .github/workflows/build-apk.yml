@@ -1,7 +1,3 @@
-# Builds the ABU MOATH TV app automatically every time files are uploaded to GitHub.
-# The finished app is published under "Releases" with a fixed download link:
-#   https://github.com/<your-username>/<repo-name>/releases/latest/download/AbuMoathTV.apk
-# Type that link in the "Downloader" app on the TV to install or update.
 name: Build APK
 
 on:
@@ -23,8 +19,6 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - uses: android-actions/setup-android@v3
-
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Unit tests
@@ -37,7 +31,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          name: "ABU MOATH TV – إصدار ${{ github.run_number }}"
-          body: "حمّل التطبيق على التلفاز عبر Downloader من الرابط: https://github.com/${{ github.repository }}/releases/latest/download/AbuMoathTV.apk"
+          name: "ABU MOATH TV build ${{ github.run_number }}"
+          body: "https://github.com/${{ github.repository }}/releases/latest/download/AbuMoathTV.apk"
           make_latest: "true"
           files: app/build/outputs/apk/release/AbuMoathTV.apk
