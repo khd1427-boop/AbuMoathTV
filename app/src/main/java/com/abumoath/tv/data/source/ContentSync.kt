@@ -39,6 +39,8 @@ class ContentSync @Inject constructor(
         const val ARCHIVE_SEARCH = "https://archive.org/advancedsearch.php"
         const val ARCHIVE_QUERY = "collection:feature_films AND mediatype:movies AND (licenseurl:*publicdomain* OR licenseurl:*creativecommons*)"
         private const val DAY_MS = 24L * 3600 * 1000
+        /** Bump when the content rules change: the app then refreshes everything on next start. */
+        const val DATA_VERSION = 2
 
         // iptv-org group-title -> our category ids
         val CATEGORY_MAP = mapOf(
@@ -79,8 +81,9 @@ class ContentSync @Inject constructor(
     val status = _status.asStateFlow()
 
     val lastSync: Long get() = prefs.getLong("last", 0L)
-    val hasContent: Boolean get() = prefs.getBoolean("has_content", false)
-    fun isStale() = System.currentTimeMillis() - lastSync > DAY_MS
+    // After a content-rules update the library is rebuilt in the foreground (old items are not shown).
+    val hasContent: Boolean get() = prefs.getBoolean("has_content", false) && prefs.getInt("ver", 1) >= DATA_VERSION
+    fun isStale() = System.currentTimeMillis() - lastSync > DAY_MS || prefs.getInt("ver", 1) < DATA_VERSION
 
     /** Runs a full update. Each source is independent: if one fails the other is still updated. */
     suspend fun sync(): Status = mutex.withLock {
@@ -91,7 +94,7 @@ class ContentSync @Inject constructor(
             _status.value = Status.Running(2)
             val mv = runCatching { syncMovies() }.getOrElse { errors++; -1 }
             val result = if (errors == 2) Status.Failed("network") else {
-                prefs.edit().putLong("last", System.currentTimeMillis()).putBoolean("has_content", true).apply()
+                prefs.edit().putLong("last", System.currentTimeMillis()).putBoolean("has_content", true).putInt("ver", DATA_VERSION).apply()
                 Status.Done(maxOf(ch, 0), maxOf(mv, 0))
             }
             _status.value = result
@@ -161,7 +164,9 @@ class ContentSync @Inject constructor(
                 val first = list.first()
                 val old = oldByExt[ext]
                 val id = old?.id ?: 0L
-                val newId = dao.upsert(ChannelEntity(id = id, ext = ext, name = first.name, nameNorm = TextTools.normalize(first.name),
+                val arName = ChannelAliases.arabicName(first.name)
+                val newId = dao.upsert(ChannelEntity(id = id, ext = ext, name = arName ?: first.name,
+                    nameNorm = TextTools.normalize(first.name + " " + (arName ?: "")),
                     logo = list.firstNotNullOfOrNull { it.logo }, country = first.country,
                     categories = "," + list.flatMap { it.cats }.toSet().joinToString(",") + ",",
                     bestHeight = list.maxOf { it.height }, views = old?.views ?: 0, addedAt = old?.addedAt ?: now))
@@ -188,47 +193,73 @@ class ContentSync @Inject constructor(
         else -> emptyList()
     }
 
+    /** Open-license queries for RECENT films only (year 2000 and later). */
+    private val movieQueries = listOf(
+        """mediatype:movies AND year:[2000 TO 2100] AND (licenseurl:*creativecommons* OR licenseurl:*publicdomain*) AND (collection:feature_films OR subject:"feature film" OR subject:"full movie" OR subject:"feature")""" to 400,
+        """mediatype:movies AND year:[2000 TO 2100] AND (language:arabic OR language:ara) AND (licenseurl:*creativecommons* OR licenseurl:*publicdomain*)""" to 150,
+        """mediatype:movies AND year:[2005 TO 2100] AND licenseurl:*creativecommons* AND (subject:animation OR subject:"animated film" OR subject:"open movie")""" to 150
+    )
+    private val MIN_YEAR = 2000
+
     private suspend fun syncMovies(): Int {
         val fields = listOf("identifier", "title", "year", "description", "language", "licenseurl", "subject", "runtime", "downloads", "director", "creator")
-        val url = buildString {
-            append(ARCHIVE_SEARCH).append("?q=").append(java.net.URLEncoder.encode(ARCHIVE_QUERY, "UTF-8"))
-            fields.forEach { append("&fl[]=").append(it) }
-            append("&sort[]=downloads+desc&rows=600&page=1&output=json")
+        val docs = LinkedHashMap<String, JsonObject>()
+        var anyOk = false
+        for ((query, rows) in movieQueries) {
+            val url = buildString {
+                append(ARCHIVE_SEARCH).append("?q=").append(java.net.URLEncoder.encode(query, "UTF-8"))
+                fields.forEach { append("&fl[]=").append(it) }
+                append("&sort[]=downloads+desc&rows=").append(rows).append("&page=1&output=json")
+            }
+            val arr = runCatching {
+                client.newCall(Request.Builder().url(url).build()).execute().use { r ->
+                    if (!r.isSuccessful) error("HTTP ${r.code}")
+                    Json.parseToJsonElement(r.body!!.string()).jsonObject["response"]?.jsonObject?.get("docs")?.jsonArray
+                }
+            }.getOrNull() ?: continue
+            anyOk = true
+            arr.forEach { el -> val o = el.jsonObject; o["identifier"].str()?.let { id -> docs.putIfAbsent(id, o) } }
         }
-        val docs = client.newCall(Request.Builder().url(url).build()).execute().use { r ->
-            if (!r.isSuccessful) error("HTTP ${r.code}")
-            Json.parseToJsonElement(r.body!!.string()).jsonObject["response"]?.jsonObject?.get("docs")?.jsonArray ?: JsonArray(emptyList())
-        }
+        if (!anyOk) error("archive unreachable")
+
         val dao = db.titles()
         val now = System.currentTimeMillis()
-        var count = 0
+        val kept = HashSet<String>()
         db.withTransaction {
             val existing = dao.idMap().associate { it.ext to it.id }
-            docs.forEachIndexed { index, el ->
-                val o = el.jsonObject
-                val ext = o["identifier"].str() ?: return@forEachIndexed
+            for ((ext, o) in docs) {
                 val license = o["licenseurl"].str()
-                if (license == null || !Regex("publicdomain|creativecommons", RegexOption.IGNORE_CASE).containsMatchIn(license)) return@forEachIndexed
+                if (license == null || !Regex("publicdomain|creativecommons", RegexOption.IGNORE_CASE).containsMatchIn(license)) continue
+                val year = o["year"].str()?.take(4)?.toIntOrNull() ?: continue
+                if (year < MIN_YEAR) continue                       // recent films only
+                val runtime = parseRuntime(o["runtime"].str())
+                if (runtime != null && runtime < 10) continue        // skip clips / trailers
                 val title = o["title"].str()?.trim().orEmpty().ifBlank { ext }
                 val id = existing[ext] ?: 0L
                 val old = if (id != 0L) dao.get(id) else null
                 val subjects = o["subject"].strList()
-                val genres = subjects.flatMap { s -> GENRE_WORDS.filter { it.first.containsMatchIn(s) }.map { it.second } }.distinct().take(4)
+                val genres = subjects.flatMap { sub -> GENRE_WORDS.filter { it.first.containsMatchIn(sub) }.map { it.second } }.distinct().take(4)
                 val lang = o["language"].str()?.lowercase()?.trim()?.let { LANG[it] ?: it.takeIf { c -> c.length == 2 } }
                 dao.upsert(TitleEntity(
-                    id = id, ext = ext, title = title, titleNorm = TextTools.normalize(title),
-                    year = o["year"].str()?.take(4)?.toIntOrNull(),
+                    id = id, ext = ext, title = title, titleNorm = TextTools.normalize(title), year = year,
                     overview = o["description"].str()?.replace(Regex("<[^>]+>"), " ")?.replace(Regex("\\s+"), " ")?.trim()?.take(1500),
-                    language = lang, runtimeMin = parseRuntime(o["runtime"].str()),
+                    language = lang, runtimeMin = runtime,
                     genres = "," + genres.joinToString(",") + ",",
                     directors = (o["director"].strList().ifEmpty { o["creator"].strList() }).take(2).joinToString("، ").ifBlank { null },
-                    license = license, popularity = docs.size - index,
+                    license = license, popularity = o["downloads"].str()?.toIntOrNull() ?: 0,
                     views = old?.views ?: 0, addedAt = old?.addedAt ?: now
                 ))
-                count++
+                kept += ext
+            }
+            // Remove films that no longer qualify (e.g. the old classics from the first version).
+            val remove = existing.filterKeys { it !in kept }.values.toList()
+            val w = db.openHelper.writableDatabase
+            remove.chunked(400).forEach { chunk ->
+                w.execSQL("DELETE FROM titles WHERE id IN (" + chunk.joinToString(",") + ")")
+                w.execSQL("DELETE FROM progress WHERE titleId IN (" + chunk.joinToString(",") + ")")
             }
         }
-        return count
+        return kept.size
     }
 
     private fun parseRuntime(v: String?): Int? {

@@ -84,7 +84,7 @@ class CatalogRepository @Inject constructor(
                 "top" -> l.sortedWith(compareByDescending<TitleEntity> { it.views }.thenByDescending { it.popularity })
                 "year" -> l.sortedByDescending { it.year ?: 0 }
                 "rating" -> l.sortedByDescending { it.popularity }
-                else -> l.sortedWith(compareByDescending<TitleEntity> { it.addedAt }.thenByDescending { it.popularity })
+                else -> l.sortedWith(compareByDescending<TitleEntity> { it.year ?: 0 }.thenByDescending { it.popularity })
             }
         }
         val size = 30
@@ -136,6 +136,16 @@ class CatalogRepository @Inject constructor(
         return PageResponse(page, size, db.channels().count(c, cat), items)
     }
 
+    /** Live channels for the category pages. region: "arab" | "foreign" | null; country: ISO code or null. */
+    suspend fun channelsFor(category: String?, region: String?, country: String? = null, limit: Int = 30): List<ChannelCard> {
+        val list = when {
+            country != null -> db.channels().list(country, category, limit, 0)
+            region == "arab" -> db.channels().inCountries(ARAB_COUNTRIES, category, limit)
+            else -> db.channels().list(null, category, limit * 4, 0).filter { region != "foreign" || it.country !in ARAB_COUNTRIES }.take(limit)
+        }
+        return list.map { it.card() }
+    }
+
     suspend fun channel(id: Long): ChannelDetails {
         val c = db.channels().get(id) ?: error("not_found")
         val streams = db.channels().streams(id).map {
@@ -156,7 +166,7 @@ class CatalogRepository @Inject constructor(
     suspend fun home(): HomeResponse {
         val rows = mutableListOf<HomeRow>()
         fun T(id: String, a: String, e: String, items: List<TitleCard>, browse: Map<String, String>?) {
-            if (items.isNotEmpty()) rows += HomeRow(id, if (ar) a else e, "titles", titles = items, browse = browse)
+            if (items.isNotEmpty() && rows.none { it.id == id }) rows += HomeRow(id, if (ar) a else e, "titles", titles = items, browse = browse)
         }
         fun C(id: String, a: String, e: String, items: List<ChannelEntity>, browse: Map<String, String>?) {
             if (items.isNotEmpty()) rows += HomeRow(id, if (ar) a else e, "channels", channels = items.map { it.card() }, browse = browse)
@@ -164,9 +174,17 @@ class CatalogRepository @Inject constructor(
         val cont = continueWatching()
         if (cont.isNotEmpty()) rows += HomeRow("continue", if (ar) "متابعة المشاهدة" else "Continue watching", "continue", titles = cont)
         val chDao = db.channels()
+        val newsIds = chDao.searchIndex().mapNotNull { r -> com.abumoath.tv.data.source.ChannelAliases.newsRank(r.name)?.let { r.id to it } }
+            .sortedBy { it.second }.map { it.first }.take(20)
+        val newsMap = chDao.getMany(newsIds).associateBy { it.id }
+        C("news_ar", "القنوات الإخبارية العربية", "Arabic news channels", newsIds.mapNotNull { newsMap[it] }, mapOf("category" to "news"))
         C("arab_ch", "قنوات عربية", "Arabic channels", chDao.inCountries(ARAB_COUNTRIES, null, 20), mapOf("region" to "arab"))
+        C("series_ch", "قنوات المسلسلات (بث مباشر)", "Series channels (live)", chDao.list(null, "series", 20, 0), mapOf("category" to "series"))
         C("sports", "القنوات الرياضية المجانية", "Free sports channels", chDao.list(null, "sports", 20, 0), mapOf("category" to "sports"))
         T("latest_movies", "أحدث الأفلام", "Latest movies", titles(mapOf("sort" to "new"), 1).items.take(20), mapOf("sort" to "new"))
+        val year = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+        T("recent5", "أفلام آخر 5 سنوات", "Last 5 years", allTitles().filter { (it.year ?: 0) >= year - 5 }
+            .sortedByDescending { it.popularity }.take(20).map { it.card() }, mapOf("decade" to "${(year - 5) / 10 * 10}"))
         T("top", "الأكثر مشاهدة", "Most watched", titles(mapOf("sort" to "top"), 1).items.take(20), mapOf("sort" to "top"))
         C("news", "قنوات إخبارية", "News channels", chDao.list(null, "news", 20, 0), mapOf("category" to "news"))
         C("kids", "قنوات الأطفال", "Kids channels", chDao.list(null, "kids", 20, 0), mapOf("category" to "kids"))
@@ -178,8 +196,7 @@ class CatalogRepository @Inject constructor(
         }
         C("movies_ch", "قنوات الأفلام", "Movie channels", chDao.list(null, "movies", 20, 0), mapOf("category" to "movies"))
         C("docs_ch", "قنوات وثائقية", "Documentary channels", chDao.list(null, "documentary", 20, 0), mapOf("category" to "documentary"))
-        T("free", "المحتوى المجاني (ملكية عامة)", "Free (public domain)", titles(mapOf("sort" to "year"), 1).items.take(20), mapOf("sort" to "year"))
-        val hero = allTitles().sortedByDescending { it.popularity }.take(5).map { it.card() }
+        val hero = allTitles().sortedByDescending { it.popularity }.take(40).sortedByDescending { it.year ?: 0 }.take(5).map { it.card() }
         return HomeResponse(hero, rows)
     }
 

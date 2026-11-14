@@ -15,6 +15,13 @@
         <intent>
             <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
         </intent>
+        <!-- "Series" / "Anime" pages list the official TV apps installed on the device -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+        </intent>
+        <package android:name="com.google.android.youtube.tv" />
+        <package android:name="com.android.vending" />
     </queries>
 
     <application
