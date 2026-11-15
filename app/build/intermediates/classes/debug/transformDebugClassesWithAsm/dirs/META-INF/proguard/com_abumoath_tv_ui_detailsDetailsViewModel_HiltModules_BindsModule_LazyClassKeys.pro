@@ -1,0 +1,3 @@
+-keep,allowobfuscation,allowshrinking class com.abumoath.tv.ui.browse.BrowseViewModel
+-keep,allowobfuscation,allowshrinking class com.abumoath.tv.ui.browse.BrowseViewModel
+-keep,allowobfuscation,allowshrinking class com.abumoath.tv.ui.details.DetailsViewModel

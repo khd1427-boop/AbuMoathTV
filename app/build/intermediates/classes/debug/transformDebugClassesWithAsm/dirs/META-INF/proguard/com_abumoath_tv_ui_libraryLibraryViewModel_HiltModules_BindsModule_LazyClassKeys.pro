@@ -1,0 +1,7 @@
+-keep,allowobfuscation,allowshrinking class com.abumoath.tv.ui.browse.BrowseViewModel
+-keep,allowobfuscation,allowshrinking class com.abumoath.tv.ui.browse.BrowseViewModel
+-keep,allowobfuscation,allowshrinking class com.abumoath.tv.ui.details.DetailsViewModel
+-keep,allowobfuscation,allowshrinking class com.abumoath.tv.ui.details.DetailsViewModel
+-keep,allowobfuscation,allowshrinking class com.abumoath.tv.ui.home.HomeViewModel
+-keep,allowobfuscation,allowshrinking class com.abumoath.tv.ui.home.HomeViewModel
+-keep,allowobfuscation,allowshrinking class com.abumoath.tv.ui.library.LibraryViewModel

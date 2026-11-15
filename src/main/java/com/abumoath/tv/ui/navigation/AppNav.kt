@@ -35,6 +35,7 @@ import com.abumoath.tv.ui.portal.PortalScreen
 import com.abumoath.tv.ui.search.SearchScreen
 import com.abumoath.tv.ui.settings.SettingsScreen
 import com.abumoath.tv.ui.splash.SplashScreen
+import com.abumoath.tv.ui.subscription.SubscriptionScreen // <--- تمت إضافة هذا الاستيراد
 import com.abumoath.tv.ui.theme.Brand
 
 object Routes {
@@ -49,6 +50,7 @@ object Routes {
     fun portal(mode: String) = "portal/$mode"
     const val LIBRARY = "library/{tab}"
     const val SETTINGS = "settings"
+    const val SUBSCRIPTIONS = "subscriptions" // <--- مسار شاشة الاشتراكات
 
     /** mode: movies | series | country | language | genre | free | top | new | custom; filters: "k=v&k2=v2". */
     fun browse(mode: String, filters: Map<String, String> = emptyMap()) =
@@ -74,6 +76,7 @@ enum class MenuItem(val route: () -> String, val label: Int, val icon: Int) {
     New({ Routes.browse("new") }, R.string.menu_new, R.drawable.ic_new),
     Favorites({ Routes.library("favorite") }, R.string.menu_favorites, R.drawable.ic_free),
     History({ Routes.library("history") }, R.string.menu_history, R.drawable.ic_history),
+    Subscriptions({ Routes.SUBSCRIPTIONS }, R.string.menu_settings, R.drawable.ic_sync), // <--- إضافة زر الاشتراكات في القائمة (استخدمنا نفس أيقونة الإعدادات مؤقتاً)
     Settings({ Routes.SETTINGS }, R.string.menu_settings, R.drawable.ic_sync)
 }
 
@@ -180,6 +183,12 @@ fun AppNavHost() {
         composable(Routes.SETTINGS) {
             MainFrame(nav, MenuItem.Settings) {
                 SettingsScreen(nav)
+            }
+        }
+        // <--- إضافة مسار شاشة الاشتراكات هنا --->
+        composable(Routes.SUBSCRIPTIONS) {
+            MainFrame(nav, MenuItem.Subscriptions) {
+                SubscriptionScreen(onBack = { nav.popBackStack() })
             }
         }
     }

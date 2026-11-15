@@ -1,0 +1,1 @@
+-keep,allowobfuscation,allowshrinking class com.abumoath.tv.ui.browse.BrowseViewModel

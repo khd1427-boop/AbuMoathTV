@@ -1,0 +1,174 @@
+[
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_audio.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_audio.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_series.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_series.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/mipmap-xxxhdpi_ic_launcher_foreground.png.flat",
+        "source": "com.abumoath.tv.app-main-6:/mipmap-xxxhdpi/ic_launcher_foreground.png"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_anime.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_anime.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "com.abumoath.tv.app-main-6:/mipmap-xxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "com.abumoath.tv.app-main-6:/mipmap-xhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable-xhdpi_tv_banner.png.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable-xhdpi/tv_banner.png"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/mipmap-xxhdpi_ic_launcher_round.png.flat",
+        "source": "com.abumoath.tv.app-main-6:/mipmap-xxhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/mipmap-hdpi_ic_launcher.png.flat",
+        "source": "com.abumoath.tv.app-main-6:/mipmap-hdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_movie.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_movie.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_free.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_free.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "com.abumoath.tv.app-main-6:/mipmap-xxxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/mipmap-xhdpi_ic_launcher_foreground.png.flat",
+        "source": "com.abumoath.tv.app-main-6:/mipmap-xhdpi/ic_launcher_foreground.png"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_subtitles.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_subtitles.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_mic.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_mic.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/mipmap-hdpi_ic_launcher_round.png.flat",
+        "source": "com.abumoath.tv.app-main-6:/mipmap-hdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/mipmap-xhdpi_ic_launcher_round.png.flat",
+        "source": "com.abumoath.tv.app-main-6:/mipmap-xhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable-nodpi_brand_logo.png.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable-nodpi/brand_logo.png"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/mipmap-xxxhdpi_ic_launcher_round.png.flat",
+        "source": "com.abumoath.tv.app-main-6:/mipmap-xxxhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_history.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_history.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_category.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_category.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_new.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_new.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_replay10.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_replay10.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_skip_next.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_skip_next.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/mipmap-mdpi_ic_launcher.png.flat",
+        "source": "com.abumoath.tv.app-main-6:/mipmap-mdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/xml_data_extraction_rules.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/xml/data_extraction_rules.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/mipmap-mdpi_ic_launcher_foreground.png.flat",
+        "source": "com.abumoath.tv.app-main-6:/mipmap-mdpi/ic_launcher_foreground.png"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_play.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_play.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_pause.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_pause.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_translate.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_translate.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_hd.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_hd.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/mipmap-mdpi_ic_launcher_round.png.flat",
+        "source": "com.abumoath.tv.app-main-6:/mipmap-mdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_sync.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_sync.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_globe.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_globe.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_launch_background.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/launch_background.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_live_tv.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_live_tv.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/xml_network_security_config.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/xml/network_security_config.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_home.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_home.xml"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/mipmap-xxhdpi_ic_launcher_foreground.png.flat",
+        "source": "com.abumoath.tv.app-main-6:/mipmap-xxhdpi/ic_launcher_foreground.png"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/mipmap-hdpi_ic_launcher_foreground.png.flat",
+        "source": "com.abumoath.tv.app-main-6:/mipmap-hdpi/ic_launcher_foreground.png"
+    },
+    {
+        "merged": "com.abumoath.tv.app-debug-4:/drawable_ic_forward10.xml.flat",
+        "source": "com.abumoath.tv.app-main-6:/drawable/ic_forward10.xml"
+    }
+]

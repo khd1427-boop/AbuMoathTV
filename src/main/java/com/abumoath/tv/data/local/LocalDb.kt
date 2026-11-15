@@ -63,6 +63,34 @@ data class ProgressEntity(
 @Entity(tableName = "library", primaryKeys = ["list", "itemType", "itemId"])
 data class LibraryEntity(val list: String, val itemType: String, val itemId: Long, val addedAt: Long)
 
+// ================== بداية إضافة الاشتراكات ==================
+
+@Entity(tableName = "subscriptions")
+data class SubscriptionEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,       // اسم الاشتراك
+    val type: String,       // "M3U" أو "XTREAM"
+    val url: String?,       // رابط M3U
+    val server: String?,    // خادم Xtream
+    val username: String?,
+    val password: String?,
+    val lastUpdated: Long
+)
+
+@Dao
+interface SubscriptionDao {
+    @Query("SELECT * FROM subscriptions")
+    fun getAll(): Flow<List<SubscriptionEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(subscription: SubscriptionEntity)
+
+    @Delete
+    suspend fun delete(subscription: SubscriptionEntity)
+}
+
+// ================== نهاية إضافة الاشتراكات ==================
+
 data class FacetRow(val k: String?, val n: Int)
 data class IdExt(val id: Long, val ext: String)
 
@@ -126,12 +154,13 @@ interface LibraryDao {
 }
 
 @Database(
-    entities = [ChannelEntity::class, ChannelStreamEntity::class, TitleEntity::class, ProgressEntity::class, LibraryEntity::class],
-    version = 2, exportSchema = false
+    entities = [ChannelEntity::class, ChannelStreamEntity::class, TitleEntity::class, ProgressEntity::class, LibraryEntity::class, SubscriptionEntity::class],
+    version = 3, exportSchema = false
 )
 abstract class LocalDb : RoomDatabase() {
     abstract fun channels(): ChannelDao
     abstract fun titles(): TitleDao
     abstract fun progress(): ProgressDao
     abstract fun library(): LibraryDao
+    abstract fun subscriptionDao(): SubscriptionDao // <--- تمت إضافة هذا السطر
 }
